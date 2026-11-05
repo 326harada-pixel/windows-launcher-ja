@@ -259,7 +259,7 @@ class ContextMenuView @JvmOverloads constructor(
                 val separatorView = itemView.findViewById<View>(R.id.menu_item_separator)
                 val subActionIconView = itemView.findViewById<ImageView>(R.id.menu_item_sub_action_icon)
 
-                textView.text = item.title
+                textView.text = L.tr(item.title)
 
                 // Apply theme-appropriate font
                 MainActivity.getInstance()?.applyThemeFontToTextView(textView)

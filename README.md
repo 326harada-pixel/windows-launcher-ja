@@ -1,3 +1,25 @@
+# Windows Launcher (Japanese personal fork)
+
+> **This is an unofficial, non-commercial fork** of [jovanovski/windowslauncher](https://github.com/jovanovski/windowslauncher) by Gorjan Jovanovski. All credit for the launcher itself goes to the original author.
+>
+> - The original author gave written permission (in [issue #92](https://github.com/jovanovski/windowslauncher/issues/92)) to distribute modified versions **non-commercially** and to publish this repository. Until the original project adds a license, that permission is the only grant that applies: **do not sell this app, put ads in it, or otherwise use it commercially.** If the original project adds a license later, that license takes precedence.
+> - **Windows images, icons, sounds and other assets are owned by Microsoft** (and the other original rights holders). Neither the original author nor this fork claims any rights over them. This is a nostalgia project and is not affiliated with or endorsed by Microsoft.
+> - The "Donate" link below is the original author's, not this fork's.
+> - Provided as is, with no warranty. Not for use on devices or accounts where you can't accept that.
+
+## What this fork changes
+
+- Full Japanese UI (a dictionary plus a view-tree translator; the upstream UI is English only)
+- Start menu "Programs": your own folders (create, rename, delete, move programs in and out), multi-select (also inside folders), automatic sorting into kind folders
+- Choose the user picture from your photos (centre square crop, resized to 256 px, stored only inside the app)
+- Windows Update check disabled; different application id (`jp.personal.winlauncher`) so it installs next to the original
+- Windows 7 start orb launcher icon, scrolling Start menu folder flyouts
+- Japanese Explorer window images (XP, 98) derived from the original Windows artwork
+
+The upstream README follows unchanged.
+
+---
+
 # Windows Launcher for Android
 Donate to keep this project alive and going: [!["Buy Me A Coffee"](https://www.buymeacoffee.com/assets/img/custom_images/orange_img.png)](https://www.buymeacoffee.com/jovanovski)
 

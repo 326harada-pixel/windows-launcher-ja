@@ -64,7 +64,7 @@
                                 android:ellipsize="end"
                                 android:fontFamily="?attr/primaryFontFamily"
                                 android:maxLines="1"
-                                android:text="Welcome"
+                                android:text="@string/start_welcome"
                                 android:textColor="@color/context_menu_text_selector"
                                 android:textSize="13sp" />
                         </LinearLayout>
@@ -148,7 +148,7 @@
                                 android:ellipsize="end"
                                 android:fontFamily="?attr/primaryFontFamily"
                                 android:maxLines="1"
-                                android:text="Settings..."
+                                android:text="@string/start_settings"
                                 android:textColor="@color/context_menu_text_selector"
                                 android:textSize="13sp" />
                         </LinearLayout>
@@ -192,7 +192,7 @@
                                     android:ellipsize="end"
                                     android:fontFamily="?attr/primaryFontFamily"
                                     android:maxLines="1"
-                                    android:text="Log Off..."
+                                    android:text="@string/start_log_off"
                                     android:textColor="@color/context_menu_text_selector"
                                     android:textSize="13sp" />
                             </LinearLayout>
@@ -224,7 +224,7 @@
                                     android:ellipsize="end"
                                     android:fontFamily="?attr/primaryFontFamily"
                                     android:maxLines="1"
-                                    android:text="Shut Down..."
+                                    android:text="@string/start_shut_down"
                                     android:textColor="@color/context_menu_text_selector"
                                     android:textSize="13sp" />
                             </LinearLayout>

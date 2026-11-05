@@ -31,6 +31,12 @@ data class ContextMenuItem(
      * where any item has one is laid out like the Start menu's, roomier and with icons.
      */
     val icon: Drawable? = null,
+    /**
+     * A row that does its action and leaves the menu open, for picking several programs at
+     * once. [liveTitle] gives the words the row shows afterwards (a tick that has just flipped).
+     */
+    val keepsMenuOpen: Boolean = false,
+    val liveTitle: (() -> String)? = null,
 ) {
     /** A menu separator is an item with nothing in it. */
     val isSeparator: Boolean get() = title.isEmpty()
@@ -145,7 +151,10 @@ object ContextMenuItems {
         onHideToggle: () -> Unit,
         isHidden: Boolean = false,
         isSystemApp: Boolean = false,
-        taskbarPin: TaskbarPinItem? = null
+        taskbarPin: TaskbarPinItem? = null,
+        moveToFolder: ContextMenuItem? = null,
+        multiSelect: ContextMenuItem? = null,
+        autoSort: ContextMenuItem? = null
     ): List<ContextMenuItem> {
         val pinText = if (isPinned) "Unpin from Start" else "Pin to Start"
         val hideText = if (isHidden) "Unhide app" else "Hide app"
@@ -153,6 +162,9 @@ object ContextMenuItems {
             ContextMenuItem("Send to Desktop", isEnabled = true, action = onCreateShortcut),
             ContextMenuItem(pinText, isEnabled = true, action = onPinToggle)
         )
+        moveToFolder?.let { items.add(it) }
+        multiSelect?.let { items.add(it) }
+        autoSort?.let { items.add(it) }
         taskbarPin?.let { items.add(it.toMenuItem()) }
         items.addAll(listOf(
             ContextMenuItem(hideText, isEnabled = true, action = onHideToggle),

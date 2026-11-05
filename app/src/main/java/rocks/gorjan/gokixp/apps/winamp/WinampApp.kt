@@ -1,5 +1,6 @@
 package rocks.gorjan.gokixp.apps.winamp
 
+import rocks.gorjan.gokixp.L
 import android.content.Context
 import android.media.MediaExtractor
 import android.media.MediaFormat
@@ -973,7 +974,7 @@ class WinampApp(
             }
             main.post {
                 if (result == null) {
-                    Toast.makeText(context, "That isn't a classic Winamp skin (.wsz)", Toast.LENGTH_LONG).show()
+                    Toast.makeText(context, L.tr("That isn't a classic Winamp skin (.wsz)"), Toast.LENGTH_LONG).show()
                     return@post
                 }
                 currentSkinFile = result.first

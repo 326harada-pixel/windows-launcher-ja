@@ -178,7 +178,7 @@ open class DesktopIconView : LinearLayout, ThemeAware {
             icon.name
         }
         // Replace "\n" with actual newline character
-        iconText.text = displayName.replace("\\n", "\n")
+        iconText.text = L.tr(displayName).replace("\\n", "\n")
 
         // Set initial shortcut arrow visibility based on preferences
         // Only show arrow for APP type icons (not folders, recycle bin, My Computer, etc.)

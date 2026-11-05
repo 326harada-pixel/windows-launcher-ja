@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     alias(libs.plugins.android.application)
 }
@@ -7,7 +9,8 @@ android {
     compileSdk = 36
 
     defaultConfig {
-        applicationId = "rocks.gorjan.gokixp"
+        // Personal fork: a different id so it installs next to the original (issue: coexist, own signing key)
+        applicationId = "jp.personal.winlauncher"
         minSdk = 29
         targetSdk = 36
         versionCode = 29
@@ -16,8 +19,27 @@ android {
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
+    // Release signing for this personal fork. The key and its passwords live outside the repository
+    // (default ~/.config/ai-r-sys/keystores/windows-launcher.signing.properties, or WL_SIGNING_PROPS);
+    // without that file the release build is simply left unsigned.
+    val signingProps = Properties().apply {
+        val f = file(System.getenv("WL_SIGNING_PROPS") ?: "${System.getProperty("user.home")}/.config/ai-r-sys/keystores/windows-launcher.signing.properties")
+        if (f.exists()) f.inputStream().use { load(it) }
+    }
+    signingConfigs {
+        if (signingProps.getProperty("storeFile") != null) {
+            create("personal") {
+                storeFile = file(signingProps.getProperty("storeFile"))
+                storePassword = signingProps.getProperty("storePassword")
+                keyAlias = signingProps.getProperty("keyAlias")
+                keyPassword = signingProps.getProperty("keyPassword")
+            }
+        }
+    }
+
     buildTypes {
         release {
+            signingConfigs.findByName("personal")?.let { signingConfig = it }
             isMinifyEnabled = false
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),

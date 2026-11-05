@@ -186,7 +186,7 @@
                     android:background="@drawable/start_search_win7"
                     android:fontFamily="@font/segoeui_regular"
                     android:gravity="center_vertical"
-                    android:hint="Search programs and files"
+                    android:hint="@string/win7_search_hint"
                     android:imeOptions="actionSearch"
                     android:inputType="text"
                     android:paddingStart="7dp"

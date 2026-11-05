@@ -55,7 +55,8 @@ enum class WinState { NORMAL, HOT, PRESSED, DISABLED }
  * Splits a Windows caption at its `&` accelerator: the ampersand goes away and the character
  * after it gets an underline. `&&` is a literal ampersand.
  */
-class WinCaption(raw: String) {
+class WinCaption(rawEnglish: String) {
+    private val raw = rawEnglish.let { rocks.gorjan.gokixp.L.tr(it) }
     val text: String
 
     /** Index into [text] of the underlined character, or -1. */

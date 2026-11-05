@@ -146,6 +146,12 @@ class MainActivity : AppCompatActivity(), AppChangeListener {
     private var originalStartMenuLayoutParams: RelativeLayout.LayoutParams? = null
     // The menu an app-list folder (Accessories) opened, put away with the start menu
     private var startMenuFolderMenu: WinMenuPopup? = null
+
+    // Picking several programs inside an open Start menu folder: what is picked, and which folder
+    private var folderSelection: LinkedHashSet<String>? = null
+    private var folderSelectionName: String? = null
+    private var openFolder: StartMenuFolder? = null
+    private var openFolderRow: View? = null
     /** The Windows 3.1 Program Manager's menu bar, while that is the start menu. */
     private var win31MenuTracker: WinMenuTracker? = null
     // Adapters auto-(un)register for theme notifications as they're replaced, so a stale adapter
@@ -298,6 +304,23 @@ class MainActivity : AppCompatActivity(), AppChangeListener {
                 pickedHandler(importedPath)
             } else {
                 showNotification("Change Icon", "That image could not be used as an icon")
+            }
+        }
+    }
+
+    // The user-picture dialog's button sets this; the picked photo is cut square and resized
+    // by UserAvatar before it is used, and the original photo is never kept.
+    private var onUserPictureImagePicked: ((String) -> Unit)? = null
+
+    private val userPicturePickerLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri: Uri? ->
+        val pickedHandler = onUserPictureImagePicked
+        onUserPictureImagePicked = null
+        if (uri != null && pickedHandler != null) {
+            val storedPath = UserAvatar.importFromUri(this, uri)
+            if (storedPath != null) {
+                pickedHandler(storedPath)
+            } else {
+                showNotification("Select User Picture", "That image could not be used")
             }
         }
     }
@@ -833,7 +856,7 @@ class MainActivity : AppCompatActivity(), AppChangeListener {
         // Get user name from SharedPreferences (accessible to other parts of the app)
         fun getUserName(context: Context): String {
             val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-            return prefs.getString(KEY_USER_NAME, "User") ?: "User"
+            return prefs.getString(KEY_USER_NAME, "さんちゃん") ?: "さんちゃん"
         }
 
         // Safe getter for integer preferences that handles type mismatches from corrupted imports
@@ -1139,6 +1162,8 @@ class MainActivity : AppCompatActivity(), AppChangeListener {
         setTheme(themeManager.getThemeStyleRes(theme))
 
         super.onCreate(savedInstanceState)
+        L.init(this)
+        L.keepTranslated(window.decorView)
         instance = this
 
         binding = ActivityMainBinding.inflate(layoutInflater)
@@ -2226,11 +2251,8 @@ class MainActivity : AppCompatActivity(), AppChangeListener {
                 showWelcomeToWindows()
             }
 
-            val updateItem = findViewById<LinearLayout>(R.id.windows_update_item)
-            updateItem?.setOnClickListener {
-                hideStartMenu()
-                checkForUpdates(true)
-            }
+            // Windows Update is disabled in this fork: the entry is not shown
+            findViewById<LinearLayout>(R.id.windows_update_item)?.visibility = View.GONE
 
             if (selectedTheme is AppTheme.Windows7) setupWin7StartMenuLinks()
             if (selectedTheme is AppTheme.Windows31) setupWin31ProgramManager()
@@ -2967,7 +2989,7 @@ class MainActivity : AppCompatActivity(), AppChangeListener {
     
     private fun getUserName(): String {
         val prefs = getSharedPreferences(PREFS_NAME, MODE_PRIVATE)
-        return prefs.getString(KEY_USER_NAME, "User") ?: "User"
+        return prefs.getString(KEY_USER_NAME, "さんちゃん") ?: "さんちゃん"
     }
     
     private fun setUserName(userName: String) {
@@ -2990,6 +3012,11 @@ class MainActivity : AppCompatActivity(), AppChangeListener {
             val drawable = if (iconPath == "default") {
                 // Use default user icon
                 ContextCompat.getDrawable(this, R.drawable.user)
+            } else if (UserAvatar.isStoredFile(iconPath)) {
+                // A picture the user picked from the device; fall back to the default if it is gone
+                val file = UserAvatar.resolve(filesDir, iconPath)
+                (if (file != null && file.exists()) Drawable.createFromPath(file.path) else null)
+                    ?: ContextCompat.getDrawable(this, R.drawable.user)
             } else {
                 // Load custom icon from assets
                 val inputStream = assets.open(iconPath)
@@ -3872,7 +3899,15 @@ class MainActivity : AppCompatActivity(), AppChangeListener {
         val finalAppsList = mutableListOf<Any>()
         val (accessoryApps, otherApps) = visibleApps.partition { it.packageName in ACCESSORIES_PROGRAMS }
         accessoriesFolder(accessoryApps)?.let { finalAppsList.add(it) }
-        finalAppsList.addAll(otherApps)
+        // Folders the user made sit under Accessories; programs in one are not listed twice
+        val appsByPackage = otherApps.associateBy { it.packageName }
+        val inUserFolder = HashSet<String>()
+        userFolders().all().sortedBy { it.name.lowercase() }.forEach { f ->
+            val children = f.packages.mapNotNull { appsByPackage[it] }.sortedBy { it.name.lowercase() }
+            inUserFolder.addAll(children.map { it.packageName })
+            finalAppsList.add(StartMenuFolder(f.name, children, isUser = true))
+        }
+        finalAppsList.addAll(otherApps.filterNot { it.packageName in inUserFolder })
 
         // The private space goes last, under its own "Private" row, the way Android's own
         // app drawer lays it out. Locked, the row is all there is - unless the user asked for
@@ -3901,7 +3936,8 @@ class MainActivity : AppCompatActivity(), AppChangeListener {
             hiddenApps = hiddenApps,
             onPrivateSpaceClick = { header -> setPrivateSpaceLocked(!header.isLocked) },
             onPrivateSpaceLongClick = { header, x, y -> showPrivateSpaceContextMenu(header, x, y) },
-            onFolderClick = { folder, row -> showStartMenuFolder(folder, row) }
+            onFolderClick = { folder, row -> showStartMenuFolder(folder, row) },
+            onFolderLongClick = { folder, x, y -> showUserFolderContextMenu(folder, x, y) }
         )
         appsRecyclerView.adapter = appsAdapter
         // A new adapter has no scroll position, and stackFromEnd would lay it out from the
@@ -3932,13 +3968,24 @@ class MainActivity : AppCompatActivity(), AppChangeListener {
      */
     private fun showStartMenuFolder(folder: StartMenuFolder, row: View) {
         startMenuFolderMenu?.dismiss()
+        openFolder = folder
+        openFolderRow = row
+        if (folderSelectionName != folder.name) folderSelection = null
+        val picking = folderSelection
         val folderIcon = AppCompatResources.getDrawable(this, themeManager.getFolderIconRes(themeManager.getSelectedTheme()))
         fun itemsOf(children: List<Any>): List<ContextMenuItem> = children.mapNotNull { child ->
             when (child) {
                 is StartMenuFolder -> ContextMenuItem(
                     child.name.replace("&", "&&"), icon = folderIcon, submenu = itemsOf(child.children)
                 )
-                is AppInfo -> ContextMenuItem(
+                is AppInfo -> if (picking != null && canPick(child)) {
+                    fun label() = "${if (child.packageName in picking) "[x]" else "[ ]"} ${child.name}".replace("&", "&&")
+                    ContextMenuItem(
+                        label(), icon = child.icon, keepsMenuOpen = true, liveTitle = { label() },
+                        action = { if (!picking.remove(child.packageName)) picking.add(child.packageName) },
+                        onLongPress = { x, y -> Helpers.performHapticFeedback(this); showSelectionMenu(x, y) }
+                    )
+                } else ContextMenuItem(
                     child.name.replace("&", "&&"), icon = child.icon,
                     action = { appsAdapter?.launchApp(child) },
                     onLongPress = { x, y -> showStartMenuFolderAppContextMenu(child, x, y) }
@@ -3951,7 +3998,16 @@ class MainActivity : AppCompatActivity(), AppChangeListener {
             menu.onPicked = { menu.dismiss() }
             // Tapping the next folder in the list opens it straight away
             menu.passTapsToSiblings = true
-            menu.show(row, itemsOf(folder.children), toTheSide = true) {
+            val pickingRows = if (picking == null) emptyList() else listOf(
+                ContextMenuItem(getString(R.string.multi_select_move_picked), action = {
+                    val at = IntArray(2).also { row.getLocationOnScreen(it) }
+                    Handler(Looper.getMainLooper()).postDelayed({ showMoveSelectionMenu(at[0] + row.width / 2f, at[1].toFloat()) }, 200)
+                }),
+                ContextMenuItem(getString(R.string.multi_select_done), action = { cancelSelection() }),
+                ContextMenuItem.separator(),
+            )
+            val listed = itemsOf(folder.children).ifEmpty { listOf(ContextMenuItem(getString(R.string.folder_empty), isEnabled = false)) }
+            menu.show(row, pickingRows + listed, toTheSide = true) {
                 row.isSelected = false
                 if (startMenuFolderMenu === menu) startMenuFolderMenu = null
             }
@@ -3974,8 +4030,204 @@ class MainActivity : AppCompatActivity(), AppChangeListener {
                 createDesktopShortcut(appInfo)
                 hideStartMenu()
             }),
-        )
+        ) + listOfNotNull(moveToFolderItem(appInfo, x, y), folderMultiSelectItem(appInfo))
         contextMenu.showMenu(menuItems, x, y)
+        isContextMenuVisible = true
+    }
+
+    private fun userFolders() = UserProgramFolders(getSharedPreferences(PREFS_NAME, MODE_PRIVATE))
+
+    /** Rebuilds the Programs list from the cached app list, once the context menu has closed. */
+    private fun refreshProgramsList() {
+        Handler(Looper.getMainLooper()).postDelayed({ loadInstalledApps() }, 50)
+    }
+
+    /** "Move to folder" for a program's menu. The launcher's own programs stay in Accessories, and private-space ones are not offered. */
+    private fun moveToFolderItem(appInfo: AppInfo, x: Float, y: Float): ContextMenuItem? {
+        if (appInfo.isPrivate || appInfo.packageName in ACCESSORIES_PROGRAMS) return null
+        // The picker is a second menu; the first is still putting itself away when this runs
+        return ContextMenuItem(getString(R.string.folder_move_to), action = {
+            Handler(Looper.getMainLooper()).postDelayed({ showMoveToFolderMenu(appInfo, x, y) }, 200)
+        })
+    }
+
+    /** "Multi-select" for a program's menu: the same programs [moveToFolderItem] offers, picked several at a time. */
+    private fun multiSelectItem(appInfo: AppInfo): ContextMenuItem? {
+        if (appInfo.isPrivate || appInfo.packageName in ACCESSORIES_PROGRAMS) return null
+        return ContextMenuItem(getString(R.string.multi_select), action = {
+            appsAdapter?.startSelection(appInfo.packageName)
+            Toast.makeText(this, getString(R.string.multi_select_hint), Toast.LENGTH_LONG).show()
+        })
+    }
+
+    /** "Sort into folders automatically": every program not already in a folder goes to the folder for its kind, when its kind is known. */
+    private fun autoSortItem(appInfo: AppInfo): ContextMenuItem? {
+        if (appInfo.isPrivate || appInfo.packageName in ACCESSORIES_PROGRAMS) return null
+        return ContextMenuItem(getString(R.string.auto_sort), action = {
+            val moved = autoSortPrograms()
+            Toast.makeText(this, getString(R.string.auto_sort_done, moved), Toast.LENGTH_LONG).show()
+            refreshProgramsList()
+        })
+    }
+
+    /** Returns how many programs were put into a folder. Programs already in a folder, and the ones whose kind is unknown, are left alone. */
+    private fun autoSortPrograms(): Int {
+        val store = userFolders()
+        val already = store.all().flatMap { it.packages }.toSet()
+        val groups = linkedMapOf<String, MutableList<String>>()
+        for (app in cachedAppList.orEmpty()) {
+            if (app.isPrivate || isSystemApp(app.packageName) || app.packageName in ACCESSORIES_PROGRAMS || app.packageName in already) continue
+            val declared = try { packageManager.getApplicationInfo(app.packageName, 0).category } catch (e: Exception) { -1 }
+            val folder = AutoFolders.categoryOf(app.packageName, declared) ?: continue
+            groups.getOrPut(folder) { mutableListOf() }.add(app.packageName)
+        }
+        var moved = 0
+        for ((folder, packages) in groups) {
+            store.create(folder) // already there is fine
+            store.moveAll(packages, folder)
+            moved += packages.size
+        }
+        return moved
+    }
+
+    /** Whether a program can be picked to move into a folder: ordinary programs only. */
+    private fun canPick(app: AppInfo) =
+        !app.isPrivate && app.packageName !in ACCESSORIES_PROGRAMS && !isSystemApp(app.packageName)
+
+    /** "Multi-select" in the menu of a program inside a Start menu folder: the folder reopens with ticks to pick with. */
+    private fun folderMultiSelectItem(appInfo: AppInfo): ContextMenuItem? {
+        if (!canPick(appInfo)) return null
+        val folder = openFolder ?: return null
+        return ContextMenuItem(getString(R.string.multi_select), action = {
+            appsAdapter?.endSelection()
+            folderSelection = linkedSetOf(appInfo.packageName)
+            folderSelectionName = folder.name
+            Toast.makeText(this, getString(R.string.multi_select_hint), Toast.LENGTH_LONG).show()
+            // The menus are still putting themselves away; the folder opens again once they have
+            Handler(Looper.getMainLooper()).postDelayed({
+                val f = openFolder
+                val r = openFolderRow
+                if (f != null && r != null && r.isAttachedToWindow && isStartMenuVisible) showStartMenuFolder(f, r)
+            }, 250)
+        })
+    }
+
+    /** What is picked right now, in the Programs list or inside a folder. */
+    private fun pickedPackages(): Set<String> = folderSelection ?: appsAdapter?.selectedPackages.orEmpty()
+
+    private fun cancelSelection() {
+        appsAdapter?.endSelection()
+        folderSelection = null
+        folderSelectionName = null
+    }
+
+    /** The menu a long press opens in multi-select: move what is picked into a folder, or stop. */
+    private fun showSelectionMenu(x: Float, y: Float) {
+        if (!::contextMenu.isInitialized) return
+        val count = pickedPackages().size
+        val items = listOf(
+            ContextMenuItem(getString(R.string.multi_select_move, count), isEnabled = count > 0, action = {
+                Handler(Looper.getMainLooper()).postDelayed({ showMoveSelectionMenu(x, y) }, 200)
+            }),
+            ContextMenuItem(getString(R.string.multi_select_done), action = { cancelSelection() }),
+        )
+        contextMenu.showMenu(items, x, y)
+        isContextMenuVisible = true
+    }
+
+    private fun showMoveSelectionMenu(x: Float, y: Float) {
+        if (!::contextMenu.isInitialized) return
+        val picked = pickedPackages().filter { it !in ACCESSORIES_PROGRAMS && !isSystemApp(it) }
+        if (picked.isEmpty()) return
+        val store = userFolders()
+        val items = mutableListOf<ContextMenuItem>()
+        store.all().sortedBy { it.name.lowercase() }.forEach { f ->
+            items.add(ContextMenuItem(f.name, action = {
+                store.moveAll(picked, f.name)
+                cancelSelection()
+                refreshProgramsList()
+            }))
+        }
+        if (items.isNotEmpty()) items.add(ContextMenuItem("", isEnabled = false))
+        items.add(ContextMenuItem(getString(R.string.folder_new), action = {
+            Handler(Looper.getMainLooper()).postDelayed({
+                showRenameDialog(title = getString(R.string.folder_dialog_new_title), initialText = "", hint = getString(R.string.folder_name_hint)) { name ->
+                    if (store.create(name)) {
+                        store.moveAll(picked, name.trim())
+                        cancelSelection()
+                        refreshProgramsList()
+                    } else {
+                        Toast.makeText(this, getString(R.string.folder_name_unusable), Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }, 200)
+        }))
+        items.add(ContextMenuItem(getString(R.string.folder_remove_from), action = {
+            store.moveAll(picked, null)
+            cancelSelection()
+            refreshProgramsList()
+        }))
+        contextMenu.showMenu(items, x, y)
+        isContextMenuVisible = true
+    }
+
+    private fun showMoveToFolderMenu(appInfo: AppInfo, x: Float, y: Float) {
+        if (!::contextMenu.isInitialized) return
+        val store = userFolders()
+        val current = store.folderOf(appInfo.packageName)
+        val items = mutableListOf<ContextMenuItem>()
+        store.all().sortedBy { it.name.lowercase() }.forEach { f ->
+            items.add(ContextMenuItem(f.name, hasCheckbox = true, isChecked = f.name == current, action = {
+                store.move(appInfo.packageName, f.name)
+                refreshProgramsList()
+            }))
+        }
+        if (items.isNotEmpty()) items.add(ContextMenuItem("", isEnabled = false))
+        items.add(ContextMenuItem(getString(R.string.folder_new), action = {
+            Handler(Looper.getMainLooper()).postDelayed({ showNewFolderDialog(appInfo) }, 200)
+        }))
+        if (current != null) {
+            items.add(ContextMenuItem(getString(R.string.folder_remove_from), action = {
+                store.move(appInfo.packageName, null)
+                refreshProgramsList()
+            }))
+        }
+        contextMenu.showMenu(items, x, y)
+        isContextMenuVisible = true
+    }
+
+    /** Asks for a name, makes the folder and puts [appInfo] in it. */
+    private fun showNewFolderDialog(appInfo: AppInfo) {
+        showRenameDialog(title = getString(R.string.folder_dialog_new_title), initialText = "", hint = getString(R.string.folder_name_hint)) { name ->
+            val store = userFolders()
+            if (store.create(name)) {
+                store.move(appInfo.packageName, name.trim())
+                refreshProgramsList()
+            } else {
+                Toast.makeText(this, getString(R.string.folder_name_unusable), Toast.LENGTH_SHORT).show()
+            }
+        }
+    }
+
+    /** Long press on a folder the user made: rename or delete. */
+    private fun showUserFolderContextMenu(folder: StartMenuFolder, x: Float, y: Float) {
+        if (!::contextMenu.isInitialized) return
+        Helpers.performHapticFeedback(this)
+        val items = listOf(
+            ContextMenuItem(getString(R.string.folder_rename), action = {
+                Handler(Looper.getMainLooper()).postDelayed({
+                    showRenameDialog(title = getString(R.string.folder_dialog_rename_title), initialText = folder.name, hint = getString(R.string.folder_name_hint)) { name ->
+                        if (userFolders().rename(folder.name, name)) refreshProgramsList()
+                        else Toast.makeText(this, getString(R.string.folder_name_unusable), Toast.LENGTH_SHORT).show()
+                    }
+                }, 200)
+            }),
+            ContextMenuItem(getString(R.string.folder_delete), action = {
+                userFolders().delete(folder.name)
+                refreshProgramsList()
+            }),
+        )
+        contextMenu.showMenu(items, x, y)
         isContextMenuVisible = true
     }
 
@@ -4163,6 +4415,7 @@ class MainActivity : AppCompatActivity(), AppChangeListener {
     }
     
     fun hideStartMenu() {
+        cancelSelection()
         if (::startMenu.isInitialized) {
             isStartMenuVisible = false
             // Fades out under XP and Aero, goes at once under 9x. Reopening during the fade
@@ -4349,6 +4602,9 @@ class MainActivity : AppCompatActivity(), AppChangeListener {
                     }
                     desktopDestroyer?.onBackPressed() == true -> {
                         Log.d("MainActivity", "Back pressed (modern): handled by Desktop Destroyer")
+                    }
+                    isStartMenuVisible && (appsAdapter?.selectionMode == true || folderSelection != null) -> {
+                        cancelSelection()
                     }
                     isStartMenuVisible -> {
                         // If start menu is open, close it
@@ -5061,6 +5317,12 @@ class MainActivity : AppCompatActivity(), AppChangeListener {
     private fun showStartMenuAppContextMenu(appInfo: AppInfo, x: Float, y: Float) {
         Log.d("MainActivity", "showStartMenuAppContextMenu called for ${appInfo.name}")
         Helpers.performHapticFeedback(this)
+
+        // While picking several programs, a long press opens the picking menu, not the program's own
+        if (appsAdapter?.selectionMode == true) {
+            showSelectionMenu(x, y)
+            return
+        }
         
         // Clear any previously selected icon
         selectedIcon?.setSelected(false)
@@ -5114,6 +5376,9 @@ class MainActivity : AppCompatActivity(), AppChangeListener {
                 },
                 isPinned = isPinned,
                 taskbarPin = taskbarPinItemFor(appInfo.packageName),
+                moveToFolder = moveToFolderItem(appInfo, x, y),
+                multiSelect = multiSelectItem(appInfo),
+                autoSort = autoSortItem(appInfo),
                 onSetSwipeRightApp = {
                     setSwipeRightApp(appInfo)
                     hideStartMenu()
@@ -6060,8 +6325,12 @@ class MainActivity : AppCompatActivity(), AppChangeListener {
         // Hide icon type buttons for user profile selection (keep them hidden)
         iconTypeButtons.visibility = View.GONE
 
-        // Browsing for an image only applies to app icons, not the user picture
-        contentView.findViewById<LinearLayout>(R.id.browse_icon_row).visibility = View.GONE
+        // Let the user pick their own picture from the device's photos
+        val browseRow = contentView.findViewById<LinearLayout>(R.id.browse_icon_row)
+        val btnBrowseIcon = contentView.findViewById<TextView>(R.id.btn_browse_icon)
+        browseRow.visibility = View.VISIBLE
+        btnBrowseIcon.text = L.tr("Choose from Photos...")
+        btnBrowseIcon.setBackgroundResource(getButtonBackgroundForCurrentTheme())
 
         // Set up window control handlers
         windowsDialog.setOnMinimizeListener {
@@ -6095,6 +6364,8 @@ class MainActivity : AppCompatActivity(), AppChangeListener {
             prefs.edit {
                 putString("user_icon_path", iconPath)
             }
+            // A bundled icon replaces any picture picked from the device
+            UserAvatar.deleteOthers(filesDir, null)
 
             // Update profile picture display
             updateProfilePicture()
@@ -6103,6 +6374,23 @@ class MainActivity : AppCompatActivity(), AppChangeListener {
             floatingWindowManager.removeWindow(windowsDialog)
         }
         recyclerView.adapter = adapter
+
+        btnBrowseIcon.setOnClickListener {
+            playClickSound()
+            onUserPictureImagePicked = { storedPath ->
+                prefs.edit { putString("user_icon_path", storedPath) }
+                UserAvatar.deleteOthers(filesDir, storedPath)
+                updateProfilePicture()
+                floatingWindowManager.removeWindow(windowsDialog)
+            }
+            try {
+                userPicturePickerLauncher.launch("image/*")
+            } catch (e: Exception) {
+                onUserPictureImagePicked = null
+                Log.e("MainActivity", "No app available to pick a user picture", e)
+                showNotification("Select User Picture", "No app available to pick an image")
+            }
+        }
 
         // Load user icons from assets in background
         Thread {
@@ -9854,7 +10142,7 @@ class MainActivity : AppCompatActivity(), AppChangeListener {
         }
 
         // Set welcome message based on theme
-        val welcomeMessage = "Windows has updated to version $versionName, tap 'Change Log' to see what's new!\n\nIf you like what I'm building, buy me a coffee here: https://buymeacoffee.com/jovanovski.\n\nThis is a passion project from Gorjan Jovanovski, a developer who grew up with these aesthetics and prefers them over new design any day.\n\nIf you're a 80s or 90s kid, you remember these days fondly, and this is a change to relive them on a modern daily driver, in your pocket!\n\nA few tips:\n1) Tap on things that look tappable, chances are they are.\n2) Swipe back to close the active open window.\n3) Swipe up, down and right on the desktop for different actions.\n4) Long press on the desktop to change wallpapers and themes.\n5) There are multiple Windows apps in the start menu, all with their own purpose.\n\nAll the copyrighted information belongs to their respective authors, the aim here is to just recreate nostalgia for fun.\n\nThe music you're listening to from the legendary Stan LePard, rest in peace!\n\nFor any feature requests, drop me an email at hey@gorjan.rocks\n\nThanks for using Windows!"
+        val welcomeMessage = if (L.isJa) "Windows はバージョン $versionName に更新されました。「変更履歴」ボタンで新しい内容を確認できます。\n\nこれは Gorjan Jovanovski さんのランチャーを、私用に改造した個人用ビルドです。\n\nヒント:\n1) タップできそうに見えるものは、たいていタップできます。\n2) 画面の端からのスワイプ(戻る)で、前面のウィンドウを閉じます。\n3) デスクトップで上・下・右にスワイプすると、それぞれ別の操作ができます。\n4) デスクトップを長押しすると、壁紙やテーマを変更できます。\n5) スタートメニューには、それぞれ役割の違う Windows アプリがあります。\n\n著作権のある素材は、それぞれの権利者のものです。ここでは、懐かしさを再現することだけを目的としています。\n\nWindows をお使いいただき、ありがとうございます!" else "Windows has updated to version $versionName, tap 'Change Log' to see what's new!\n\nIf you like what I'm building, buy me a coffee here: https://buymeacoffee.com/jovanovski.\n\nThis is a passion project from Gorjan Jovanovski, a developer who grew up with these aesthetics and prefers them over new design any day.\n\nIf you're a 80s or 90s kid, you remember these days fondly, and this is a change to relive them on a modern daily driver, in your pocket!\n\nA few tips:\n1) Tap on things that look tappable, chances are they are.\n2) Swipe back to close the active open window.\n3) Swipe up, down and right on the desktop for different actions.\n4) Long press on the desktop to change wallpapers and themes.\n5) There are multiple Windows apps in the start menu, all with their own purpose.\n\nAll the copyrighted information belongs to their respective authors, the aim here is to just recreate nostalgia for fun.\n\nThe music you're listening to from the legendary Stan LePard, rest in peace!\n\nFor any feature requests, drop me an email at hey@gorjan.rocks\n\nThanks for using Windows!"
 
         // Function to format changelog text
         fun fetchChangeLogFromGitHub(callback: (String) -> Unit) {
@@ -10930,7 +11218,7 @@ class MainActivity : AppCompatActivity(), AppChangeListener {
             }
         } else {
             // Accessibility service not enabled, request it
-            Toast.makeText(this,"Enable the 'Windows Launcher' accessibility service to use screen lock", Toast.LENGTH_LONG).show()
+            Toast.makeText(this,L.tr("Enable the 'Windows Launcher' accessibility service to use screen lock"), Toast.LENGTH_LONG).show()
             requestAccessibilityPermission()
             return
         }
@@ -16114,8 +16402,8 @@ class MainActivity : AppCompatActivity(), AppChangeListener {
         notificationHideRunnable?.let { notificationHandler.removeCallbacks(it) }
 
         // Set the text
-        notificationTitle.text = title
-        notificationText.text = description
+        notificationTitle.text = L.tr(title)
+        notificationText.text = L.tr(description)
 
         // Store the callback
         notificationTapCallback = onTap
@@ -16145,7 +16433,14 @@ class MainActivity : AppCompatActivity(), AppChangeListener {
     /**
      * Checks for app updates from remote config
      */
+    // Personal fork: the Windows Update feature is switched off. The original's updater would
+    // compare this build with the upstream releases and offer to "update" it to the original app.
     private fun checkForUpdates(showCheckingNotification: Boolean = false) {
+        return
+    }
+
+    @Suppress("unused", "UNREACHABLE_CODE")
+    private fun checkForUpdatesDisabledOriginal(showCheckingNotification: Boolean = false) {
         Thread {
             try {
                 val apiUrl = URL("https://api.github.com/repos/jovanovski/windowslauncher/releases/latest")

@@ -19,7 +19,7 @@ import rocks.gorjan.gokixp.theme.ThemeAware
  * A folder in the app list, the way All Programs has Accessories. Its [children] are
  * [AppInfo]s and further folders; a tap opens them in a menu of their own beside its row.
  */
-data class StartMenuFolder(val name: String, val children: List<Any>)
+data class StartMenuFolder(val name: String, val children: List<Any>, val isUser: Boolean = false)
 
 class AppsAdapter(
     private val context: Context,
@@ -36,7 +36,9 @@ class AppsAdapter(
     private val onPrivateSpaceClick: ((PrivateSpaceHeader) -> Unit)? = null,
     private val onPrivateSpaceLongClick: ((PrivateSpaceHeader, Float, Float) -> Unit)? = null,
     // A folder row: the activity opens its contents as a menu beside the row it hands over
-    private val onFolderClick: ((StartMenuFolder, View) -> Unit)? = null
+    private val onFolderClick: ((StartMenuFolder, View) -> Unit)? = null,
+    // A long press on a folder the user made: rename or delete it
+    private val onFolderLongClick: ((StartMenuFolder, Float, Float) -> Unit)? = null
 ) : RecyclerView.Adapter<RecyclerView.ViewHolder>(), ThemeAware {
 
     private var filteredItems: List<Any> = originalItems
@@ -94,6 +96,35 @@ class AppsAdapter(
     private val itemLayoutRes: Int
         get() = if (isWin31) R.layout.app_grid_item_31 else R.layout.app_list_item
 
+    // Multi-select: while on, a tap picks a program instead of opening it
+    var selectionMode = false
+        private set
+    private val selected = linkedSetOf<String>()
+    val selectedPackages: Set<String> get() = selected
+    var onSelectionChanged: ((Int) -> Unit)? = null
+
+    fun startSelection(first: String) {
+        selectionMode = true
+        selected.clear()
+        selected.add(first)
+        notifyDataSetChanged()
+        onSelectionChanged?.invoke(selected.size)
+    }
+
+    fun endSelection() {
+        if (!selectionMode) return
+        selectionMode = false
+        selected.clear()
+        notifyDataSetChanged()
+        onSelectionChanged?.invoke(0)
+    }
+
+    private fun toggleSelected(packageName: String, position: Int) {
+        if (!selected.remove(packageName)) selected.add(packageName)
+        notifyItemChanged(position)
+        onSelectionChanged?.invoke(selected.size)
+    }
+
     /** Whether the item at [position] is a separator, which spans a whole row of a grid. */
     fun isSeparator(position: Int): Boolean = filteredItems.getOrNull(position) is String
 
@@ -107,6 +138,11 @@ class AppsAdapter(
             // the app back out of the list by position when they actually fire.
             itemView.setOnClickListener {
                 val app = boundApp() ?: return@setOnClickListener
+                if (selectionMode) {
+                    // Only ordinary programs can be picked: the private space's and the launcher's own stay where they are
+                    if (!app.isPrivate && !MainActivity.isSystemApp(app.packageName)) toggleSelected(app.packageName, bindingAdapterPosition)
+                    return@setOnClickListener
+                }
                 launchApp(app)
             }
 
@@ -150,6 +186,15 @@ class AppsAdapter(
                     ?: return@setOnClickListener
                 (context as? MainActivity)?.playClickSound()
                 onFolderClick?.invoke(folder, itemView)
+            }
+            itemView.setOnLongClickListener {
+                val folder = filteredItems.getOrNull(bindingAdapterPosition) as? StartMenuFolder
+                if (folder == null || !folder.isUser) return@setOnLongClickListener false
+                itemView.isHapticFeedbackEnabled = false
+                val location = IntArray(2)
+                itemView.getLocationOnScreen(location)
+                onFolderLongClick?.invoke(folder, location[0] + itemView.width / 2f, location[1] + itemView.height / 2f)
+                true
             }
         }
 
@@ -249,7 +294,7 @@ class AppsAdapter(
             holder.icon.setImageResource(
                 if (header.isLocked) R.drawable.private_space_locked else R.drawable.private_space_unlocked
             )
-            holder.label.text = if (header.isLocked) "Private (locked)" else "Private"
+            holder.label.text = L.tr(if (header.isLocked) "Private (locked)" else "Private")
             holder.label.setTextColor(textColors)
             holder.label.typeface = themeTypeface
             return
@@ -262,7 +307,7 @@ class AppsAdapter(
                     if (isWin31) R.drawable.win31_group else it.themeManager.getFolderIconRes(currentTheme)
                 )
             }
-            holder.label.text = folder.name
+            holder.label.text = if (folder.isUser) folder.name else L.tr(folder.name)
             holder.label.setTextColor(textColors)
             holder.label.typeface = themeTypeface
             holder.arrow?.setTextColor(textColors)
@@ -274,7 +319,7 @@ class AppsAdapter(
 
         // Use pre-loaded icon from AppInfo (icons loaded when start menu opened)
         holder.appIcon.setImageDrawable(app.icon)
-        holder.appName.text = app.name
+        holder.appName.text = if (selectionMode) "${if (app.packageName in selected) "[x]" else "[ ]"} ${L.tr(app.name)}" else L.tr(app.name)
 
         // Hidden apps show through at half opacity so they read as "not normally here"
         holder.itemView.alpha = if (!app.isPrivate && hiddenApps.contains(app.packageName)) 0.5f else 1f

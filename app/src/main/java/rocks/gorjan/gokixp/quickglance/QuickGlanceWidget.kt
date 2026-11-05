@@ -1,5 +1,6 @@
 package rocks.gorjan.gokixp.quickglance
 
+import rocks.gorjan.gokixp.L
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -336,7 +337,7 @@ class QuickGlanceWidget @JvmOverloads constructor(
             }
         } catch (e: Exception) {
             Log.e("QuickGlanceWidget", "Error executing tap action", e)
-            Toast.makeText(context, "Could not open app", Toast.LENGTH_SHORT).show()
+            Toast.makeText(context, L.tr("Could not open app"), Toast.LENGTH_SHORT).show()
         }
     }
     

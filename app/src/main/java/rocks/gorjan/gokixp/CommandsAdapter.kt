@@ -156,7 +156,7 @@ class CommandsAdapter(
             is CommandListItem.Command -> {
                 val commandHolder = holder as CommandViewHolder
                 commandHolder.icon.setImageResource(item.commandItem.iconResourceId)
-                commandHolder.name.text = item.commandItem.name
+                commandHolder.name.text = L.tr(item.commandItem.name)
 
                 // Apply theme font
                 val mainActivity = context as? MainActivity
@@ -168,7 +168,7 @@ class CommandsAdapter(
             is CommandListItem.RecentApp -> {
                 val recentAppHolder = holder as RecentAppViewHolder
                 val appInfo = item.appInfo
-                recentAppHolder.name.text = appInfo.name
+                recentAppHolder.name.text = L.tr(appInfo.name)
 
                 // Hidden apps show through at half opacity so they read as "not normally here"
                 recentAppHolder.itemView.alpha =
@@ -185,7 +185,7 @@ class CommandsAdapter(
             is CommandListItem.ProgramsCommand -> {
                 val programsHolder = holder as ProgramsViewHolder
                 programsHolder.icon.setImageResource(item.commandItem.iconResourceId)
-                programsHolder.name.text = item.commandItem.name
+                programsHolder.name.text = L.tr(item.commandItem.name)
 
                 // Apply theme font (Programs uses secondary font which could be different)
                 val mainActivity = context as? MainActivity

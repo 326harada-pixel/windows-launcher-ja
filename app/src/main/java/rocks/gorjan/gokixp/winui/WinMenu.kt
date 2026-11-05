@@ -1,6 +1,7 @@
 package rocks.gorjan.gokixp.winui
 
 import android.app.Activity
+import rocks.gorjan.gokixp.L
 import android.content.ContextWrapper
 import android.graphics.Canvas
 import android.graphics.Color
@@ -15,10 +16,13 @@ import android.view.Gravity
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewTreeObserver
+import androidx.core.view.ViewCompat
+import androidx.core.view.WindowInsetsCompat
 import android.widget.FrameLayout
 import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.PopupWindow
+import android.widget.ScrollView
 import android.widget.TextView
 import rocks.gorjan.gokixp.ContextMenuItem
 import rocks.gorjan.gokixp.R
@@ -170,6 +174,12 @@ class WinMenuPopup(private val ui: WinUi) {
     private var parent: WinMenuPopup? = null
     private var anchorView: View? = null
     private var body: View? = null
+    // The column of rows inside body (inside a scroll view too, when the menu is taller than the screen)
+    private var rows: ViewGroup? = null
+
+    // Room kept clear above and below when the menu is taller than the screen and scrolls
+    private var topPad = 0
+    private var bottomPad = 0
 
     // Where a menu beside its row sits, and what keeps it there while the row moves
     private var placedX = 0
@@ -215,7 +225,9 @@ class WinMenuPopup(private val ui: WinUi) {
                 setPadding(edge, edge, edge, edge)
             }
         }
-        for (item in items) body.addView(rowFor(item, withIcons))
+        val rows = LinearLayout(ui.context).apply { orientation = LinearLayout.VERTICAL }
+        for (item in items) rows.addView(rowFor(item, withIcons))
+        body.addView(rows)
 
         // As wide as its longest command, not as wide as the screen will let it be: every row
         // is match-parent with a weighted label, which a wrap-content popup otherwise stretches.
@@ -226,9 +238,38 @@ class WinMenuPopup(private val ui: WinUi) {
             View.MeasureSpec.makeMeasureSpec(ui.dp(WinMenuMetrics.PROGRAMS_WIDTH_DP), View.MeasureSpec.EXACTLY)
         } else unbounded
         body.measure(width, unbounded)
-        this.body = body
 
-        window = PopupWindow(body, body.measuredWidth, ViewGroup.LayoutParams.WRAP_CONTENT).apply {
+        // A menu taller than the screen (a Start menu folder with many programs) scrolls up and
+        // down instead of running off the bottom, as the All Programs list does.
+        val (usableTop, usableBottom) = usableBand(activityRoot(anchor))
+        val room = usableBottom - usableTop
+        var scrolls = false
+        topPad = 0
+        bottomPad = 0
+        if (room > 0 && body.measuredHeight > room) {
+            scrolls = true
+            topPad = usableTop
+            bottomPad = activityRoot(anchor).height - usableBottom
+            body.removeAllViews()
+            val scroller = ScrollView(ui.context).apply {
+                isVerticalScrollBarEnabled = true
+                overScrollMode = View.OVER_SCROLL_NEVER
+                // A submenu hangs off a row; once the rows move, it no longer lines up
+                setOnScrollChangeListener { _, _, _, _, _ -> child?.dismiss(); child = null }
+                addView(rows)
+            }
+            body.addView(scroller, LinearLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT,
+            ))
+            body.measure(width, View.MeasureSpec.makeMeasureSpec(room, View.MeasureSpec.AT_MOST))
+        }
+        this.body = body
+        this.rows = rows
+
+        window = PopupWindow(
+            body, body.measuredWidth,
+            if (scrolls) body.measuredHeight else ViewGroup.LayoutParams.WRAP_CONTENT,
+        ).apply {
             isOutsideTouchable = true
             isFocusable = true
             elevation = if (ui.isClassic) 0f else 4f * ui.density
@@ -277,7 +318,7 @@ class WinMenuPopup(private val ui: WinUi) {
                 val origin = IntArray(2)
                 screen.getLocationOnScreen(origin)
                 val x = (at[0] - origin[0]).coerceAtMost(screen.width - body.measuredWidth).coerceAtLeast(0)
-                val y = (at[1] - origin[1] - body.measuredHeight).coerceAtLeast(0)
+                val y = (at[1] - origin[1] - body.measuredHeight).coerceAtLeast(topPad)
                 showAtLocation(screen, Gravity.NO_GRAVITY, x, y)
             } else {
                 showAsDropDown(anchor, 0, 0)
@@ -297,6 +338,15 @@ class WinMenuPopup(private val ui: WinUi) {
         }
     }
 
+    /** The part of [screen] not under the status bar or the navigation bar: its top and bottom edge. */
+    private fun usableBand(screen: View): Pair<Int, Int> {
+        val bars = ViewCompat.getRootWindowInsets(screen)
+            ?.getInsets(WindowInsetsCompat.Type.systemBars())
+        val top = bars?.top ?: 0
+        val bottom = bars?.bottom ?: 0
+        return Pair(top, screen.height - bottom)
+    }
+
     /** Where a menu goes beside [anchor]: x, y on the activity's window, and whether it went left. */
     private fun besideAnchor(anchor: View, body: View): Triple<Int, Int, Boolean> {
         val screen = activityRoot(anchor)
@@ -310,7 +360,7 @@ class WinMenuPopup(private val ui: WinUi) {
         val right = left + anchor.width - overlap
         val toTheLeft = right + body.measuredWidth > screen.width
         val x = if (toTheLeft) (left + overlap - body.measuredWidth).coerceAtLeast(0) else right
-        val y = top.coerceAtMost(screen.height - body.measuredHeight).coerceAtLeast(0)
+        val y = top.coerceAtMost(screen.height - bottomPad - body.measuredHeight).coerceAtLeast(topPad)
         return Triple(x, y, toTheLeft)
     }
 
@@ -331,7 +381,7 @@ class WinMenuPopup(private val ui: WinUi) {
 
     /** The menu row under a point on the screen, if the point is on this menu at all. */
     private fun rowAt(x: Float, y: Float): View? {
-        val menu = body as? ViewGroup ?: return null
+        val menu = rows ?: return null
         val at = IntArray(2)
         for (i in 0 until menu.childCount) {
             val row = menu.getChildAt(i)
@@ -456,7 +506,7 @@ class WinMenuPopup(private val ui: WinUi) {
 
         row.addView(
             TextView(ui.context).apply {
-                text = accelerated(item.title)
+                text = accelerated(L.tr(item.title))
                 setTextColor(textColor)
                 setTextSize(android.util.TypedValue.COMPLEX_UNIT_SP, ui.textSp)
                 ui.applyMenuFont(this)
@@ -529,6 +579,11 @@ class WinMenuPopup(private val ui: WinUi) {
                             words.forEach { it.setTextColor(cold) }
                         }
                     }
+                    return@setOnClickListener
+                }
+                if (item.keepsMenuOpen) {
+                    item.action?.invoke()
+                    item.liveTitle?.let { words[0].text = accelerated(L.tr(it())) }
                     return@setOnClickListener
                 }
                 // A command closes every menu above it, not just the one it was on.

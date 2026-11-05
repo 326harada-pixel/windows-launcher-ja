@@ -1,0 +1,397 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 日本語版 Windows 98 の表記に合わせた日本語。Localizer.kt が "英語|日本語" を読む -->
+    <string name="app_name">Windowsらんちゃあ</string>
+
+    <string name="start_welcome">ようこそ</string>
+    <string name="start_settings">設定(S)...</string>
+    <string name="start_log_off">ログオフ(L)...</string>
+    <string name="start_shut_down">電源を切る(U)...</string>
+
+    <string name="folder_move_to">フォルダへ移動</string>
+    <string name="folder_new">新しいフォルダ...</string>
+    <string name="folder_remove_from">フォルダから出す</string>
+    <string name="folder_rename">名前の変更</string>
+    <string name="folder_delete">削除</string>
+    <string name="folder_name_hint">フォルダ名</string>
+    <string name="folder_dialog_new_title">新しいフォルダ</string>
+    <string name="folder_dialog_rename_title">フォルダ名の変更</string>
+    <string name="folder_empty">(空)</string>
+    <string name="folder_name_unusable">フォルダ名が空、長すぎる、または既に使われています</string>
+    <string name="folder_confirm_delete">このフォルダを削除しますか? 中のプログラムは「プログラム」の一覧に戻ります。</string>
+
+    <string name="auto_sort">種類でフォルダ分け(自動)</string>
+    <string name="auto_sort_done">%1$d 個のプログラムをフォルダに分けました</string>
+    <string name="multi_select">複数選択</string>
+    <string name="multi_select_hint">タップでプログラムを選択します。長押しでメニュー、戻るで終了します。</string>
+    <string name="multi_select_move">選択した %1$d 個をフォルダへ移動</string>
+    <string name="multi_select_done">選択を終了</string>
+    <string name="multi_select_move_picked">選んだプログラムを移動...</string>
+
+    <!-- Windows 3.1 の「プログラム マネージャ」のメニュー バー(下線は頭文字) -->
+    <string name="win31_menu_file">ファイル(<u>F</u>)</string>
+    <string name="win31_menu_options">オプション(<u>O</u>)</string>
+    <string name="win31_menu_window">ウィンドウ(<u>W</u>)</string>
+    <string name="win31_menu_help">ヘルプ(<u>H</u>)</string>
+
+    <string-array name="translation_pairs">
+        <item>Getting Started|はじめに</item>
+        <item>All Programs|すべてのプログラム</item>
+        <item>Search programs and files|プログラムとファイルの検索</item>
+        <item>Back|戻る</item>
+        <item>User|ユーザー</item>
+        <item>Documents|ドキュメント</item>
+        <item>Pictures|ピクチャ</item>
+        <item>Music|ミュージック</item>
+        <item>Games|ゲーム</item>
+        <item>Computer|コンピュータ</item>
+        <item>Control Panel|コントロール パネル</item>
+        <item>Devices and Printers|デバイスとプリンター</item>
+        <item>Default Programs|既定のプログラム</item>
+        <item>Help and Support|ヘルプとサポート</item>
+        <item>Shut down|電源を切る</item>
+        <item>Show icons from:|アイコンの取得元:</item>
+        <item>Browse...|参照...</item>
+        <item>File|ファイル</item>
+        <item>Edit|編集</item>
+        <item>Format|書式</item>
+        <item>Add Image|画像の追加</item>
+        <item>Archived Notes|保存済みのメモ</item>
+        <item>Help|ヘルプ</item>
+        <item>Add|追加</item>
+        <item>Welcome|ようこそ</item>
+        <item>Start Search|検索の開始</item>
+        <item>New Game|新しいゲーム</item>
+        <item>Cancel|キャンセル</item>
+        <item>Program Manager|プログラム マネージャ</item>
+        <item>Disk|ディスク</item>
+        <item>Tree|ツリー</item>
+        <item>View|表示</item>
+        <item>Options|オプション</item>
+        <item>Window|ウィンドウ</item>
+        <item>Command Line:|コマンド ライン:</item>
+        <item>Version 3.1|バージョン 3.1</item>
+        <item>This product is licensed to:|このプロダクトの使用許諾先:</item>
+        <item>Log|ログ</item>
+        <item>Programs|プログラム</item>
+        <item>Main|メイン</item>
+        <item>Accessories|アクセサリ</item>
+        <item>StartUp|スタートアップ</item>
+        <item>Applications|アプリケーション</item>
+        <item>Done|完了</item>
+        <item>Theme|テーマ</item>
+        <item>Flavour|スタイル</item>
+        <item>Plus! theme|Plus! テーマ</item>
+        <item>Desktop Icons|デスクトップ アイコン</item>
+        <item>Show \'My Computer\'|\'マイ コンピュータ\' を表示</item>
+        <item>Show \'Recycle Bin\'|\'ごみ箱\' を表示</item>
+        <item>Show \'My Briefcase\'|\'マイ ブリーフケース\' を表示</item>
+        <item>Show shortcut arrow on icons|アイコンにショートカットの矢印を表示</item>
+        <item>Desktop|デスクトップ</item>
+        <item>Show mouse cursor|マウス カーソルを表示</item>
+        <item>Show air quality|空気の質を表示</item>
+        <item>(provided by AirCare)|(AirCare 提供)</item>
+        <item>Show \'Christmas Lights\'|\'クリスマス ライト\' を表示</item>
+        <item>Top Margin:|上の余白:</item>
+        <item>Desktop Agent|デスクトップ エージェント</item>
+        <item>Show \'Desktop Agent\'|\'デスクトップ エージェント\' を表示</item>
+        <item>Agent:|エージェント:</item>
+        <item>Show agent above widgets|エージェントをウィジェットの前面に表示</item>
+        <item>AI service:|AI サービス:</item>
+        <item>API key:|API キー:</item>
+        <item>Paste your key|キーを貼り付け</item>
+        <item>(kept on this device, one key per service)|(この端末にのみ保存。サービスごとに 1 つ)</item>
+        <item>Send queries to AI|AI に質問を送る</item>
+        <item>Read response out loud|回答を読み上げる</item>
+        <item>Quick Glance|クイック グランス</item>
+        <item>Show \'Quick Glance\'|\'クイック グランス\' を表示</item>
+        <item>Align right|右揃え</item>
+        <item>Widgets|ウィジェット</item>
+        <item>Widget Size:|ウィジェットのサイズ:</item>
+        <item>Taskbar|タスク バー</item>
+        <item>Show black under taskbar|タスク バーの下に黒を表示</item>
+        <item>Taskbar Height:|タスク バーの高さ:</item>
+        <item>Wallpaper|壁紙</item>
+        <item>Slide desktop wallpaper|デスクトップの壁紙をスライド</item>
+        <item>Duration:|間隔:</item>
+        <item>Behavior|動作</item>
+        <item>Tap desktop to hide icons|デスクトップをタップしてアイコンを隠す</item>
+        <item>Open desktop URLs in Internet Explorer|デスクトップの URL を Internet Explorer で開く</item>
+        <item>Default Apps|既定のアプリ</item>
+        <item>The apps opened by the weather, the clock, the date, and a swipe right on the desktop.|天気、時計、日付、デスクトップの右スワイプで開くアプリです。</item>
+        <item>Weather:|天気:</item>
+        <item>Clock:|時計:</item>
+        <item>Calendar:|カレンダー:</item>
+        <item>Swipe right:|右スワイプ:</item>
+        <item>Notifications|通知</item>
+        <item>Play \'You\'ve got mail\' when receiving email|メール受信時に \'メールが届きました\' を再生</item>
+        <item>Tap to grant permission|タップして権限を許可</item>
+        <item>Show notification dots on app icons|アプリ アイコンに通知ドットを表示</item>
+        <item>Backup &amp; Restore|バックアップと復元</item>
+        <item>Backup &amp;amp; Restore|バックアップと復元</item>
+        <item>Save every setting on this page to a file or to your Google Drive, and put it all back on another phone.|このページの設定をすべてファイルまたは Google ドライブに保存し、別の端末で復元できます。</item>
+        <item>Export...|エクスポート...</item>
+        <item>Import...|インポート...</item>
+        <item>Sync to Google Drive every hour|1 時間ごとに Google ドライブへ同期</item>
+        <item>Never synced|未同期</item>
+        <item>Play|再生</item>
+        <item>Favourites|お気に入り</item>
+        <item>Go|移動</item>
+        <item>Windows Launcher|Windowsらんちゃあ</item>
+        <item>Phone\'s Home Screen|端末のホーム画面</item>
+        <item>Phone\'s Lock Screen|端末のロック画面</item>
+        <item>Apply|適用</item>
+        <item>Hi, I\'m Rover, welcome to Windows XP!|こんにちは、ローバーです。Windows XP へようこそ!</item>
+        <item>What should I say?|何と言いましょう?</item>
+        <item>Tools|ツール</item>
+        <item>Change Log|変更履歴</item>
+        <item>Run ...|ファイル名を指定して実行...</item>
+        <item>Calls and messages have nowhere to go|通話とメッセージの送り先がありません</item>
+        <item>Choose a phone app|電話アプリを選択</item>
+        <item>Choose a messaging app|メッセージ アプリを選択</item>
+        <item>Open Android default apps settings|Android の既定のアプリ設定を開く</item>
+        <item>Notification title|通知のタイトル</item>
+        <item>Notification text|通知の内容</item>
+        <item>Change Deck|デッキの変更</item>
+        <item>Card Style|カードのスタイル</item>
+        <item>Hint|ヒント</item>
+        <item>Game over, no valid moves left|ゲームオーバー: 動かせる手がありません</item>
+        <item>( loading... )|( 読み込み中... )</item>
+        <item>Change Icon|アイコンの変更</item>
+        <item>This phone has no default apps screen. Its own settings are the|この端末には既定のアプリ画面がありません。端末の設定をご利用ください:</item>
+        <item>Default apps|既定のアプリ</item>
+        <item>Backup|バックアップ</item>
+        <item>Import Failed|インポートに失敗しました</item>
+        <item>Google Drive|Google ドライブ</item>
+        <item>Date/Time Properties|日付と時刻のプロパティ</item>
+        <item>Solitaire|ソリティア</item>
+        <item>Minesweeper|マインスイーパ</item>
+        <item>FreeCell|フリーセル</item>
+        <item>Hearts|ハート</item>
+        <item>Pinball|ピンボール</item>
+        <item>Desktop Destroyer|デスクトップ デストロイヤー</item>
+        <item>Log off|ログオフ</item>
+        <item>(Empty)|(空)</item>
+        <item>Restore|元に戻す</item>
+        <item>&amp;Restore|元のサイズに戻す</item>
+        <item>&amp;Move|移動</item>
+        <item>&amp;Size|サイズ変更</item>
+        <item>Mi&amp;nimize|最小化</item>
+        <item>Ma&amp;ximize|最大化</item>
+        <item>&amp;Close|閉じる</item>
+        <item>S&amp;witch To...|切り替え...</item>
+        <item>&amp;New...|新規作成...</item>
+        <item>&amp;Open|開く</item>
+        <item>&amp;Move...|移動...</item>
+        <item>&amp;Copy...|コピー...</item>
+        <item>&amp;Delete|削除</item>
+        <item>Proper&amp;ties...|プロパティ...</item>
+        <item>&amp;Run...|ファイル名を指定して実行...</item>
+        <item>E&amp;xit Windows...|Windows の終了...</item>
+        <item>&amp;Auto Arrange|自動整列</item>
+        <item>&amp;Minimize on Use|使用時に最小化</item>
+        <item>&amp;Save Settings on Exit|終了時に設定を保存</item>
+        <item>&amp;Refresh|最新の情報に更新</item>
+        <item>Show &amp;Hidden Programs|隠したプログラムを表示</item>
+        <item>&amp;Cascade|重ねて表示</item>
+        <item>&amp;Tile|並べて表示</item>
+        <item>&amp;Arrange Icons|アイコンの整列</item>
+        <item>&amp;Contents|目次</item>
+        <item>&amp;Search for Help on...|ヘルプの検索...</item>
+        <item>&amp;How to Use Help|ヘルプの使い方</item>
+        <item>&amp;Windows Tutorial|Windows のチュートリアル</item>
+        <item>&amp;About Program Manager...|プログラム マネージャのバージョン情報...</item>
+        <item>Hide Christmas Lights|クリスマス ライトを隠す</item>
+        <item>Select Agent|エージェントの選択</item>
+        <item>Change Agent|エージェントの変更</item>
+        <item>Forget Conversation|会話を消去</item>
+        <item>Hide Agent|エージェントを隠す</item>
+        <item>Change User Name|ユーザー名の変更</item>
+        <item>User name|ユーザー名</item>
+        <item>Swipe Right App changed|右スワイプのアプリを変更しました</item>
+        <item>Weather app set|天気アプリを設定しました</item>
+        <item>Send to Desktop|デスクトップへ送る</item>
+        <item>Back to Pinned|ピン留めに戻る</item>
+        <item>Add Widget|ウィジェットの追加</item>
+        <item>Rename|名前の変更</item>
+        <item>Select User Picture|ユーザーの画像を選択</item>
+        <item>Choose from Photos...|写真から選ぶ...</item>
+        <item>That image could not be used|その画像は使えません</item>
+        <item>Icon name|アイコン名</item>
+        <item>Rename Folder|フォルダ名の変更</item>
+        <item>Folder name|フォルダ名</item>
+        <item>Rename File|ファイル名の変更</item>
+        <item>File name|ファイル名</item>
+        <item>Error|エラー</item>
+        <item>Display Properties|画面のプロパティ</item>
+        <item>Background|背景</item>
+        <item>Screen Saver|スクリーン セーバー</item>
+        <item>Appearance|デザイン</item>
+        <item>Effects|効果</item>
+        <item>Settings|設定</item>
+        <item>Export Settings|設定のエクスポート</item>
+        <item>Where would you like to export your settings?|設定をどこへエクスポートしますか?</item>
+        <item>Import Settings|設定のインポート</item>
+        <item>Where would you like to import your settings from?|設定をどこからインポートしますか?</item>
+        <item>Syncing...|同期中...</item>
+        <item>Apply Wallpaper To|壁紙の適用先</item>
+        <item>Export Failed|エクスポートに失敗しました</item>
+        <item>Notepad|メモ帳</item>
+        <item>The Microsoft Hearts Network|Microsoft ハート ネットワーク</item>
+        <item>Permission Missing|権限がありません</item>
+        <item>Windows Media Player needs the storage permission, tap here to grant it.|Windows Media Player にはストレージの権限が必要です。ここをタップして許可してください。</item>
+        <item>Read Me|お読みください</item>
+        <item>Loading changelog...|変更履歴を読み込み中...</item>
+        <item>Enable the \'Windows Launcher\' accessibility service to use screen lock|画面ロックを使うには、\'Windowsらんちゃあ\' のユーザー補助サービスを有効にしてください</item>
+        <item>Enable Service|サービスの有効化</item>
+        <item>Permissions needed|権限が必要です</item>
+        <item>Add to Desktop|デスクトップに追加</item>
+        <item>Shortcut name|ショートカット名</item>
+        <item>Shortcut Added|ショートカットを追加しました</item>
+        <item>My Briefcase|マイ ブリーフケース</item>
+        <item>Permission Needed|権限が必要です</item>
+        <item>Open|開く</item>
+        <item>Unpin from Taskbar|タスク バーのピン留めを外す</item>
+        <item>Pin to Taskbar|タスク バーにピン留め</item>
+        <item>Up to date|最新の状態です</item>
+        <item>That image could not be used as an icon|その画像はアイコンとして使えません</item>
+        <item>Settings exported successfully|設定をエクスポートしました</item>
+        <item>Signed in successfully|サインインしました</item>
+        <item>Sign-in cancelled. Note: Google Drive API requires OAuth configuration.|サインインをキャンセルしました。注: Google ドライブ API には OAuth の設定が必要です。</item>
+        <item>Not available for items in folders|フォルダ内の項目では使えません</item>
+        <item>No app available to pick an image|画像を選べるアプリがありません</item>
+        <item>Downloading backup...|バックアップをダウンロード中...</item>
+        <item>Settings imported successfully from Google Drive|Google ドライブから設定をインポートしました</item>
+        <item>Find \'Windows Launcher\' in the list and turn it ON|一覧の \'Windowsらんちゃあ\' を探して ON にしてください</item>
+        <item>Please go to Settings > Accessibility and enable Windows Launcher|設定 > ユーザー補助 で Windowsらんちゃあ を有効にしてください</item>
+        <item>Google Search app not available|Google 検索アプリが利用できません</item>
+        <item>Please enable location permission in Settings|設定で位置情報の権限を有効にしてください</item>
+        <item>Calendar permission required for event display|予定の表示にはカレンダーの権限が必要です</item>
+        <item>Storage permission required to access music files|音楽ファイルにアクセスするにはストレージの権限が必要です</item>
+        <item>Storage permission required to access video files|動画ファイルにアクセスするにはストレージの権限が必要です</item>
+        <item>No new updates available|新しい更新はありません</item>
+        <item>Arrange Icons By|アイコンの整列</item>
+        <item>Arrange Icons|アイコンの整列</item>
+        <item>Refresh|最新の情報に更新</item>
+        <item>Paste|貼り付け</item>
+        <item>Paste Shortcut|ショートカットの貼り付け</item>
+        <item>New Folder|新しいフォルダ</item>
+        <item>Add Widget...|ウィジェットの追加...</item>
+        <item>Properties|プロパティ</item>
+        <item>Move / Resize|移動 / サイズ変更</item>
+        <item>Configure...|設定...</item>
+        <item>Remove Widget|ウィジェットの削除</item>
+        <item>Move Icon|アイコンの移動</item>
+        <item>Set as Swipe Right App|右スワイプのアプリに設定</item>
+        <item>Set as Weather App|天気アプリに設定</item>
+        <item>Delete|削除</item>
+        <item>Uninstall|アンインストール</item>
+        <item>Lock Private Space|プライベートスペースをロック</item>
+        <item>Private Space Settings|プライベートスペースの設定</item>
+        <item>Unpin from Start|スタートメニューのピン留めを外す</item>
+        <item>Pin to Start|スタートメニューにピン留め</item>
+        <item>Empty Recycle Bin|ごみ箱を空にする</item>
+        <item>Move|移動</item>
+        <item>Hide Recycle Bin|ごみ箱を隠す</item>
+        <item>Show Calendar Events|予定の表示</item>
+        <item>Refresh Calendar|予定表の更新</item>
+        <item>Hide Quick Glance|クイック グランスを隠す</item>
+        <item>Refresh App List|アプリ一覧の更新</item>
+        <item>Open with hidden apps|隠したアプリも表示して開く</item>
+        <item>Move to Desktop|デスクトップへ移動</item>
+        <item>Close|閉じる</item>
+        <item>Update All|すべて更新</item>
+        <item>Hide My Briefcase|マイ ブリーフケースを隠す</item>
+        <item>Hide My Computer|マイ コンピュータを隠す</item>
+        <item>Calendar Access Needed|カレンダーへのアクセスが必要です</item>
+        <item>Could not open app|アプリを開けませんでした</item>
+        <item>Flip horizontal|左右反転</item>
+        <item>Flip vertical|上下反転</item>
+        <item>Rotate by 90°|90° 回転</item>
+        <item>Rotate by 180°|180° 回転</item>
+        <item>Rotate by 270°|270° 回転</item>
+        <item>New|新規</item>
+        <item>Open...|開く...</item>
+        <item>Save|保存</item>
+        <item>Save As...|名前を付けて保存...</item>
+        <item>Set As Wallpaper|壁紙に設定</item>
+        <item>Exit|終了</item>
+        <item>Undo|元に戻す</item>
+        <item>Repeat|繰り返し</item>
+        <item>Cut|切り取り</item>
+        <item>Copy|コピー</item>
+        <item>Clear Selection|選択の解除</item>
+        <item>Select All|すべて選択</item>
+        <item>Normal Size|通常のサイズ</item>
+        <item>Large Size|大きいサイズ</item>
+        <item>View Bitmap|ビットマップの表示</item>
+        <item>Flip/Rotate...|反転/回転...</item>
+        <item>Stretch/Skew...|拡大縮小/傾斜...</item>
+        <item>Invert Colors|色の反転</item>
+        <item>Attributes...|属性...</item>
+        <item>Clear Image|イメージのクリア</item>
+        <item>Edit Colors...|色の編集...</item>
+        <item>Help Topics|ヘルプ トピック</item>
+        <item>About Paint|ペイントのバージョン情報</item>
+        <item>Draw|描画</item>
+        <item>Game won!|ゲームクリア!</item>
+        <item>Game over - no valid moves|ゲームオーバー - 動かせる手がありません</item>
+        <item>Locating site|サイトを検索中</item>
+        <item>Cannot find server|サーバーが見つかりません</item>
+        <item>Add to Favourites|お気に入りに追加</item>
+        <item>Save Image|画像を保存</item>
+        <item>Share Image|画像を共有</item>
+        <item>Copy Image URL|画像の URL をコピー</item>
+        <item>Open in External App|外部アプリで開く</item>
+        <item>Share URL|URL を共有</item>
+        <item>Copy URL|URL をコピー</item>
+        <item>Select Game|ゲームの選択</item>
+        <item>Restart Game|ゲームの再開</item>
+        <item>Statistics...|統計...</item>
+        <item>Options...|オプション...</item>
+        <item>Large Cards|大きいカード</item>
+        <item>About FreeCell...|フリーセルのバージョン情報...</item>
+        <item>Send To My Briefcase|マイ ブリーフケースへ送る</item>
+        <item>Cr&amp;eate Directory...|ディレクトリの作成...</item>
+        <item>E&amp;xit|終了</item>
+        <item>Shows currently playing track|再生中のトラックを表示</item>
+        <item>Delete from playlist|プレイリストから削除</item>
+        <item>Load skin...|スキンの読み込み...</item>
+        <item>Get skins...|スキンの取得...</item>
+        <item>Delete current skin|現在のスキンを削除</item>
+        <item>That isn\'t a classic Winamp skin (.wsz)|これは Winamp クラシック スキン (.wsz) ではありません</item>
+        <item>Connect a Phone|端末の接続</item>
+        <item>Welcome to the Windows Briefcase|Windows ブリーフケースへようこそ</item>
+        <item>My Briefcase keeps files on this phone and on your computer the same.|マイ ブリーフケースは、この端末とコンピュータのファイルを同じ状態に保ちます。</item>
+        <item>The computer no longer knows this phone. Connect it again.|コンピュータがこの端末を認識できなくなりました。もう一度接続してください。</item>
+        <item>Add a File...|ファイルの追加...</item>
+        <item>Connected Devices...|接続済みのデバイス...</item>
+        <item>Connect a Phone...|端末の接続...</item>
+        <item>Get from the Computer|コンピュータから取得</item>
+        <item>Send to the Computer|コンピュータへ送信</item>
+        <item>Sound|サウンド</item>
+        <item>Score...|スコア...</item>
+        <item>About Hearts|ハートのバージョン情報</item>
+        <item>Score Sheet|得点表</item>
+        <item>Exit Lights95|Lights95 の終了</item>
+        <item>Normal|標準</item>
+        <item>From Gallery|ギャラリーから</item>
+        <item>From Camera|カメラから</item>
+        <item>Search widgets|ウィジェットを検索</item>
+        <item>None of your apps offer widgets.|ウィジェットを提供するアプリがありません。</item>
+        <item>Private|プライベート</item>
+        <item>Private (locked)|プライベート (ロック中)</item>
+        <item>Entertainment|エンターテイメント</item>
+        <item>Calculator|電卓</item>
+        <item>Clock|時計</item>
+        <item>Photos|フォト</item>
+        <item>My Computer|マイ コンピュータ</item>
+        <item>Recycle Bin|ごみ箱</item>
+        <item>Log Off...|ログオフ...</item>
+        <item>Shut Down...|電源を切る...</item>
+        <item>Settings...|設定...</item>
+        <item>Move to folder|フォルダへ移動</item>
+        <item>Multi-select|複数選択</item>
+    </string-array>
+    <string name="win7_search_hint">プログラムとファイルの検索</string>
+</resources>
