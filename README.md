@@ -1,5 +1,7 @@
 # Windows Launcher (Japanese personal fork)
 
+[日本語のREADME](README.ja.md)
+
 > **This is an unofficial, non-commercial fork** of [jovanovski/windowslauncher](https://github.com/jovanovski/windowslauncher) by Gorjan Jovanovski. All credit for the launcher itself goes to the original author.
 >
 > - The original author gave written permission (in [issue #92](https://github.com/jovanovski/windowslauncher/issues/92)) to distribute modified versions **non-commercially** and to publish this repository. Until the original project adds a license, that permission is the only grant that applies: **do not sell this app, put ads in it, or otherwise use it commercially.** If the original project adds a license later, that license takes precedence.
